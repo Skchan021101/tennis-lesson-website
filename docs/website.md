@@ -69,7 +69,7 @@ lessons Serangoon" and "高文 网球课".
    some proof of the business, such as the flyer or a PayNow receipt. Follow
    its prompts.
 6. Add your services with the three prices, your hours (weekday evenings
-   7pm to 10pm, weekends 7am to 10pm), and at least 5 photos of you coaching.
+   from 7pm onwards), and at least 5 photos of you coaching.
 7. **Ask every happy student for a Google review.** Reviews are the strongest
    signal for local searches, and the site can show real ones later. Send the
    review link on WhatsApp after a good lesson.
