@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kovan-tennis.pages.dev/sitemap.xml
