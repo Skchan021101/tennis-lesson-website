@@ -20,6 +20,10 @@ PAGES = {  # path on the site -> file in site/
 PAIRS = [("/", "/zh/"), ("/kids/", "/zh/kids/")]
 PRICES = {"solo": 100, "pair_pp": 70, "group_pp": 50}   # the flyer prices, per person per hour
 
+BANNED = ("SUNNIG", "newsport", "years of experience", "years of coaching", "5 years", "五年",
+          "TODO", "lorem", "S$")
+ALLOWED_SUFFIXES = frozenset({".html", ".css", ".jpg", ".svg", ".txt", ".xml"})
+
 ROOT = Path(__file__).resolve().parent.parent / "site"
 
 
@@ -326,14 +330,11 @@ class TestSitemap:
 class TestNoStaleOrWrongCopy:
     """Typos from the flyer and anything that counts years go out of date by itself, so they are banned outright."""
 
-    BANNED = ["SUNNIG", "newsport", "years of experience", "years of coaching", "5 years", "五年",
-              "TODO", "lorem", "S$"]
-
     def test_banned_strings(self):
         for name in all_files():
             text = (ROOT / name).read_text(encoding="utf-8")
             lowered = text.lower()
-            for word in self.BANNED:
+            for word in BANNED:
                 assert word.lower() not in lowered, (name, word)
 
     def test_no_minimum_age_and_no_invented_proof(self):
@@ -347,9 +348,7 @@ class TestNoStaleOrWrongCopy:
 class TestOnlyPublicFilesInWebsite:
     """Everything in site/ becomes a public URL, so nothing but web files may live there."""
 
-    ALLOWED = {".html", ".css", ".jpg", ".svg", ".txt", ".xml"}
-
     def test_only_web_files(self):
         for f in ROOT.rglob("*"):
             if f.is_file() and f.name != "_headers":
-                assert f.suffix in self.ALLOWED, f.relative_to(ROOT)
+                assert f.suffix in ALLOWED_SUFFIXES, f.relative_to(ROOT)
