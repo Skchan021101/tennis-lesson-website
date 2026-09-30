@@ -45,23 +45,16 @@ changing any facts.
 
 ## 2. Tech stack: plain static files, nothing to build
 
-- Hand-written **HTML5 + one CSS file**. **No JavaScript at all**: FAQs use
-  `<details>`, navigation uses anchor links. No framework, no bundler, no
+- Hand-written **HTML5 + one CSS file**. **No JavaScript at all**: FAQs and
+  the mobile menu use `<details>`, navigation uses anchor links, and the
+  header's scroll effect uses CSS scroll-driven animation (section 4.3). No framework, no bundler, no
   npm, no `package.json`, no Tailwind, no jQuery.
 - Why: the coach cannot maintain a build chain, Cloudflare Pages serves a
   folder of files for free with nothing to build, and a page with no
   JavaScript and two photos loads almost instantly on a phone. Speed is a
   Google ranking factor.
-- Fonts: **Montserrat 800** for English headings only, from Google Fonts
-  (`display=swap`, with `preconnect`). Everything else uses the system font
-  stack. Chinese pages use system Chinese fonts; **never load a web font for
-  Chinese** (they are several MB).
-
-  ```css
-  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-               "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-  --font-head: "Montserrat", var(--font-body);
-  ```
+- Fonts: **Playfair Display 700** for English headings, from Google Fonts;
+  the system font stack for everything else (details in section 4.1).
 - **No third-party scripts**: no Google Analytics, no Facebook pixel, no
   embedded Google Map (an iframe map adds about 1 MB and slows the page).
   Visitor numbers come from Cloudflare Web Analytics, which the coach turns
@@ -91,6 +84,7 @@ site/
   sitemap.xml
   _headers                    Cloudflare Pages headers file (section 8)
 
+docs/design-reference/        ALREADY IN REPO: 5 screenshots of the design the coach picked (section 4.0)
 docs/website.md               for the coach: how to change a price, how it deploys (section 11)
 tests/test_website.py         guards (section 9)
 .github/workflows/ci.yml      runs ruff + pytest on every push and PR (section 9)
@@ -104,117 +98,245 @@ unknown licence and is not in the repo.
 
 ## 4. Design
 
-### 4.1 Look and feel
+### 4.0 The reference: look at it first
 
-The flyer is **royal blue + bright yellow**, with bold uppercase headings
-and a tennis ball. Keep that identity so the flyer and the website clearly
-belong to the same coach, but make it cleaner and more premium: plenty of
-white space, one strong photo, and short text blocks.
+The coach picked a reference design. Screenshots are in
+`docs/design-reference/` (a plumbing company's template, "AquaFlow"). Open
+all five before writing any CSS. **Match its look and structure, not its
+content.** None of its text, claims ("10,000+ homeowners", "4.9★ rating",
+"5-year warranty") or photos come across; the tennis copy is in section 6.
+
+What makes that design work, and must survive into this site:
+
+| Reference element | Screenshot | Becomes, here |
+|---|---|---|
+| Full-bleed hero photo under a dark navy gradient, text on the left | 1 | `coach-forehand.jpg` under the same gradient. The night-time photo is already dark, so it suits this well. |
+| Header over the hero: rounded blue square logo tile, serif wordmark, hamburger on the right | 1 | Tile with a white tennis-ball glyph, wordmark "Coach Soon Keat" / "陈顺杰教练". |
+| Glassy pill badge above the headline ("TRUSTED BY…") | 1 | `KOVAN · HOUGANG · SERANGOON · BISHAN`. Never a customer count. |
+| Big bold **serif** headline, last words in a bright accent colour | 1 | "Tennis lessons **near Kovan**", with the highlight in tennis-ball yellow instead of their teal. |
+| Two pill buttons: solid blue with an arrow and a soft blue glow, plus a glass outline button | 1 | "WhatsApp Coach →" and "See prices". |
+| Row of three trust points with outline icons | 1 | Three credentials (section 6). **No rating**, because there are no reviews yet. |
+| Wavy bottom edge on the hero | 1 | Same: an inline SVG wave filled with the next section's colour. |
+| Section header: small uppercase blue eyebrow, big serif H2, grey subline, centred | 2, 4 | The same pattern on every section. |
+| Service card: rounded, image on top with a "Popular" pill and a glass icon tile, serif title, grey text, grey tag chips, a divider, then "From $89" and "Learn More →" | 2, 3 | Lesson card: 1-on-1 / 2 people / Group of 4. Section 4.3 explains what goes in place of the photo. |
+| "Why choose us" grid: icon in a soft blue rounded tile, serif title, grey text, centred | 4 | "Why train with Soon Keat": six real facts, no invented guarantees. |
+| Contact block: eyebrow and serif H2 on the left, rows of icon tile + small uppercase label + value, then a white card | 5 | The same rows (WhatsApp, Call, Email, Where). **The card has buttons instead of a form** (section 4.3, item 10). |
+| Floating round chat button, bottom right | 1–5 | A floating round **WhatsApp** button. No fake notification dot. |
+
+### 4.1 Tokens
 
 ```css
 :root {
-  --blue:        #1d5fd6;  /* flyer blue, darkened slightly so white text passes contrast */
-  --blue-dark:   #0e2f6b;  /* headings on white, footer background */
-  --ink:         #13213a;  /* body text */
-  --muted:       #4a5873;  /* secondary text (must still be >= 4.5:1 on white) */
-  --ball:        #e6f24a;  /* tennis-ball yellow: fills and highlights ONLY, never text on white */
-  --ball-strong: #d4e31c;  /* hover state of yellow buttons */
+  --navy:        #0b1a33;  /* hero overlay, footer, headings */
+  --ink:         #0f1b2d;  /* body text on light backgrounds */
+  --muted:       #5b6b82;  /* sublines, card text: must stay >= 4.5:1 on --mist */
+  --blue:        #0f6bd7;  /* buttons, eyebrows, prices, links (white text on it passes AA) */
+  --blue-hover:  #0b5bb8;
+  --blue-tint:   #e4eefb;  /* icon tiles */
+  --ball:        #dcf23a;  /* tennis-ball yellow: headline highlight on dark, "Popular" pill with navy text. Never as text on white. */
+  --mist:        #f4f7fb;  /* alternating section background (the reference's pale blue-grey) */
   --paper:       #ffffff;
-  --sand:        #f7f4ec;  /* alternating section background, echoes the flyer's cream pages */
-  --line:        #dfe4ee;
-  --radius:      14px;
+  --line:        #e3e8ef;  /* card borders, dividers */
+  --chip:        #eef1f5;  /* tag chips */
+  --radius-card: 20px;
+  --radius-tile: 16px;
+  --shadow-card: 0 1px 2px rgb(15 27 45 / .04), 0 10px 30px -12px rgb(15 27 45 / .18);
+  --glow:        0 12px 32px -10px rgb(15 107 215 / .65);
 }
 ```
 
-- **Primary button** ("WhatsApp Coach"): `--ball` background, `--blue-dark`
-  text, bold, a WhatsApp glyph as inline SVG, minimum 48px tall, full width
-  on mobile. Yellow on navy/white stands out far more than WhatsApp green,
-  and white-on-WhatsApp-green fails contrast.
-- **Secondary button**: white/transparent with a 2px `--blue` border and
-  `--blue` text.
-- Headings: Montserrat 800. H1 and section eyebrows are uppercase; H2 and
-  below are sentence case. On Chinese pages, headings are bold system font
-  and not uppercased.
-- Body text 17px/1.6 on mobile, 18px on desktop. Max line length 68ch.
-- Light theme only; a marketing page does not need a dark mode.
-- Every text/background pair must pass **WCAG AA** contrast. Visible focus
-  ring (`outline: 3px solid var(--blue); outline-offset: 2px`) on every link
-  and button.
-- Respect `prefers-reduced-motion`. The only motion is a 150ms hover
-  transition on buttons.
+Fonts:
 
-### 4.2 Layout: mobile first
+```css
+--font-head: "Playfair Display", Georgia, "Times New Roman", serif;   /* EN headings, 700 only */
+--font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+             "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+```
 
-Most visitors arrive on a phone from Google. Design at **360–390px wide
-first**, then widen.
+- Load **Playfair Display 700 only**, Latin subset, from Google Fonts with
+  `display=swap` and `preconnect`. This is the reference's serif headline
+  look. The body text uses the system sans stack, as the reference does.
+- **Chinese pages:** headings use the body stack at weight 700 (PingFang /
+  YaHei). Chinese serif system fonts vary too much between phones. Never load
+  a Chinese web font; they are several MB.
+- Sizes: H1 `clamp(2.4rem, 6vw, 4.25rem)`, line-height 1.08. H2
+  `clamp(1.9rem, 4vw, 2.75rem)`. Card title 1.35rem. Eyebrow 0.8rem, 700,
+  uppercase, `letter-spacing: .14em`, `--blue` (on dark backgrounds use
+  `--ball`). Body 1.0625rem/1.65; sublines 1.15rem, `--muted`, max 680px.
+- Light theme only. Every text/background pair passes **WCAG AA**. There is
+  a visible focus ring on every link, button and `summary`
+  (`outline: 3px solid var(--blue); outline-offset: 3px`; on dark
+  backgrounds `var(--ball)`).
+- Motion: cards lift `translateY(-4px)` and the shadow deepens on hover
+  (200ms); buttons darken. Put all of it inside
+  `@media (prefers-reduced-motion: no-preference)`.
 
-- Horizontal page padding 16px on mobile, 24px on tablet; content max width
-  1120px.
-- **No horizontal scrolling at any width from 320px up.**
-- **Sticky bottom bar on mobile only (<768px)**: a full-width yellow
-  "WhatsApp Coach" button pinned to the bottom of the screen
-  (`position: sticky` inside a bottom wrapper, or `position: fixed` with
-  `padding-bottom` on `body` so it never covers the footer). Include
-  `env(safe-area-inset-bottom)` padding for iPhones. On desktop the header
-  holds the button instead.
-- Header: coach name as a text wordmark on the left ("Coach Soon Keat" /
-  "陈顺杰教练", with a small yellow ball dot), then the language switch
-  ("中文" / "EN") on the right, then (desktop only) anchor links to Prices,
-  Coach, FAQ, plus the WhatsApp button. On mobile, show only the wordmark and
-  the language switch. **No hamburger menu** (it would need JavaScript).
+### 4.2 Components
 
-### 4.3 Home page sections, in order
+- **Primary button**: pill (`border-radius: 999px`), `--blue` background,
+  white 600-weight text, `--glow` shadow, a right-arrow SVG after the label,
+  min-height 48px, padding `0 1.6rem`. It is full width on mobile inside the
+  hero and inline from 640px up.
+- **Glass button** (on dark backgrounds only): pill,
+  `background: rgb(255 255 255 / .08)`, `border: 1px solid rgb(255 255 255 / .35)`,
+  white text, `backdrop-filter: blur(6px)`.
+- **Glass badge**: pill, `rgb(15 107 215 / .18)` background, a 1px
+  `rgb(255 255 255 / .18)` border, white uppercase 0.78rem 700 text with
+  `.08em` tracking.
+- **Icon tile**: 60px square, `--radius-tile`, `--blue-tint` background,
+  28px outline icon in `--blue`, stroke 1.75. Use
+  [Lucide](https://lucide.dev) icon paths as inline SVG (ISC licence), with
+  `aria-hidden="true"` on each. Put one HTML comment
+  `<!-- Icons: Lucide, ISC licence -->` in each page. Icons needed:
+  `message-circle`, `phone`, `mail`, `map-pin`, `clock`, `trophy`, `award`,
+  `wallet`, `cloud-rain`, `users`, `user`, `baby` (or `smile`),
+  `arrow-right`, `menu`, `chevron-down`. Write the WhatsApp glyph by hand
+  as a simple speech bubble with a phone inside. **Do not** copy
+  WhatsApp's logo file.
+- **Tag chip**: `--chip` background, `--muted` text, 0.85rem, pill,
+  padding `.35rem .8rem`.
+- **Card**: `--paper`, 1px `--line` border, `--radius-card`,
+  `--shadow-card`, `overflow: hidden`. The body is padded 28px (22px on
+  mobile).
+- **Floating WhatsApp button**: 60px circle, `--blue`, white glyph, `--glow`,
+  `position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom))`,
+  `z-index: 50`, `aria-label="WhatsApp Coach Soon Keat"` (`"WhatsApp 联系陈教练"`
+  on Chinese pages). It uses the general pre-filled message. Give the footer
+  96px of bottom padding so the button never covers footer text.
 
-Each section has an `id` for anchor links. Alternate `--paper` / `--sand`
-backgrounds.
+### 4.3 Home page, section by section
 
-1. **Hero** (`#top`): on desktop, a two-column layout with the text on the
-   left and `coach-forehand.jpg` on the right (rounded corners, a subtle
-   yellow offset block behind it as a nod to the flyer's angled shapes). On
-   mobile the photo sits above the text and is cropped with `object-fit:
-   cover` and `aspect-ratio: 4/3`, `object-position: 60% 30%` so the
-   coach's face and racquet stay in frame. Contents: eyebrow, H1, subline,
-   a "From $50/hr" price chip, primary WhatsApp button, secondary "See
-   prices" button (`#prices`). The hero image is the LCP element: give it
-   `fetchpriority="high"`, **no** `loading="lazy"`, and explicit
-   `width`/`height`.
-2. **Credentials strip**: four short badges in a row (2×2 grid on mobile).
-   Plain text with a small icon each; no carousel.
-3. **Who it's for** (`#levels`): the flyer's four levels plus kids, as five
-   cards. The kids card links to `/kids/`.
-4. **Prices** (`#prices`): three cards (1-on-1, 2 people, group of 4). The
-   2-person card is visually highlighted as "Popular with friends & couples".
-   Under the cards, a list of what is included and what is not (racquets and
-   balls provided; the court is booked and paid by the student). Each card has
-   its own WhatsApp button with a pre-filled message naming that lesson type
-   (section 5).
-5. **How it works** (`#how`): three numbered steps.
-6. **Meet your coach** (`#coach`): `malaysia-junior-davis-cup.jpg` plus the
-   achievements list. Its caption says which photo it is so it is not
-   mistaken for a current team photo.
-7. **Where & when** (`#where`): the four areas as chips, plus the coaching
-   hours. Plain text, no map.
-8. **FAQ** (`#faq`): `<details>`/`<summary>` accordion, first item open.
-9. **Final call to action**: a blue band with a short heading and the
-   WhatsApp button.
-10. **Footer**: contact (WhatsApp, `tel:` link, `mailto:` link), service
-    areas, language switch, and "© 2026 Chan Soon Keat". The year is typed
-    in the HTML, since the page has no JavaScript.
+Backgrounds alternate `--paper` / `--mist`, following the reference. Every
+section after the hero opens with the **section header pattern**: eyebrow,
+serif H2 and grey subline, centred. Only the contact section is
+left-aligned, as in screenshot 5. Vertical padding is `clamp(64px, 9vw, 112px)`.
+
+1. **Header** (over the hero). Logo tile (40px, `--blue`, radius 12px, white
+   ball glyph) + serif wordmark on the left. On the right: the language link
+   ("中文" / "EN") and a **hamburger built from `<details>`/`<summary>`**. No
+   JavaScript: opening the `<details>` shows a white dropdown panel with
+   links to Lessons, Coach, FAQ and Contact, plus the WhatsApp button. From
+   1024px up, hide the hamburger and show those links inline instead.
+
+   The header starts transparent, with white text, positioned absolute over
+   the hero. **Progressive enhancement, still without JavaScript:** inside
+   `@supports (animation-timeline: scroll())`, make it
+   `position: fixed` and run a keyframe animation on
+   `animation-timeline: scroll(root)` with `animation-range: 0 140px`. The
+   animation takes it from transparent / white text to a white background,
+   `--ink` text and a soft shadow, which is the white bar in screenshots 2
+   and 4. Browsers without support get a header that scrolls away with the
+   hero, which is fine because the floating button is always there. Give the
+   icons `currentColor` so they change colour with the text.
+
+2. **Hero** (`#top`), `min-height: min(92vh, 860px)` on desktop; on mobile
+   the height follows the content, with 120px top padding to clear the
+   header.
+   - The photo is a real `<img>` (not a CSS background, so it can be the LCP
+     element and carry alt text): `position: absolute; inset: 0;
+     object-fit: cover; object-position: 68% 35%` (on mobile `72% 30%`),
+     `fetchpriority="high"`, no lazy loading, with `width`/`height` set.
+   - Overlay: `linear-gradient(90deg, rgb(11 26 51 / .94) 0%, rgb(11 26 51 / .82) 42%, rgb(11 26 51 / .35) 100%)`.
+     On mobile use a vertical version (`180deg`, .55 → .92) so the text at
+     the bottom stays readable.
+   - Content, left-aligned, max 640px: glass badge, then the H1 with the last
+     words in `<span class="hl">` coloured `--ball`, then a subline (white at
+     80% opacity), then the primary and glass buttons, then the trust row
+     (three items, each a 20px outline icon in `--ball` plus white text at
+     80% opacity, wrapping onto separate lines on mobile).
+   - Bottom: an inline SVG wave (`preserveAspectRatio="none"`, ~70px tall,
+     full width), filled with `--mist`.
+   - The photo is only 768px wide, so it will look soft on large screens.
+     The dark overlay hides most of that. Section 12 asks the coach for a
+     larger one. **Do not** sharpen, upscale or AI-enhance it.
+
+3. **Lessons & prices** (`#prices`, `--mist`): three lesson cards in the
+   reference's service-card style, one column on mobile, three from 960px.
+   There is only one photo per lesson type to go round (none), so **the card
+   image area is an illustration of a tennis court**: a 150px-tall band with
+   a `--blue` → `#0a4fa8` gradient and white court lines drawn in inline SVG
+   (baseline, service line, centre line, at 35% opacity), different on each
+   card. Solo is a half-court with one small yellow ball; 2 people shows
+   two balls; group shows four. Put the glass icon tile in the bottom-left
+   of the band, as in the reference (`user`, `users`, and `users` with a
+   "4"). The 2-person card has the **"Popular" pill** top-left, with a `--ball`
+   background and `--navy` text. Card body: serif title, one-sentence
+   description, 3 tag chips, a divider, then a footer row with the price
+   left (`$100` in `--blue`, bold, 1.5rem, then `/hour` or
+   `/hour per person` in `--muted`) and `WhatsApp →` right, as a link with
+   that card's pre-filled message. There is **no "From"** before the prices;
+   they are exact. Under the cards, the "Good to know" list as four
+   inline items with check icons, centred.
+
+4. **Who it's for** (`#levels`, `--paper`): five compact cards, each an icon
+   tile on the left and title + text on the right. They sit in 1 column on
+   mobile, 2 on tablet and 3 on desktop (the kids card takes the last slot,
+   with a `--blue` "Tennis lessons for kids →" link).
+
+5. **Meet your coach** (`#coach`, `--mist`): split layout. On the left, the
+   Davis Cup photo in a rounded card with its caption underneath. On the
+   right, the section header left-aligned, the intro paragraph, then the
+   achievements as a list with a small `trophy`/`award` icon per line. It
+   stacks on mobile with the photo first.
+
+6. **Why train with Soon Keat** (`#why`, `--paper`): the reference's
+   feature grid (screenshot 4). Six items, 2 columns on mobile and tablet,
+   3 on desktop, centred, each with an icon tile, a serif title and grey
+   text.
+
+7. **How it works** (`#how`, `--mist`): three numbered cards in a row
+   (stacked on mobile). The number sits in a 44px `--blue` circle with white
+   serif digits.
+
+8. **Where & when** (`#where`, `--paper`): the four areas as large chips
+   with `map-pin` icons, then two info cards side by side: "Hours" with a
+   `clock` icon, and "Lesson length".
+
+9. **FAQ** (`#faq`, `--mist`): `<details>` items styled as white cards with
+   a 12px radius and 1px border. The `summary` is 600 weight with a
+   `chevron-down` that rotates when open. The first item is open. Max width
+   760px, centred.
+
+10. **Contact** (`#contact`, `--paper`): the layout of screenshot 5. On the
+    left: eyebrow, serif H2 and subline, then four contact rows (icon tile +
+    small uppercase label + value, each value a link):
+    WhatsApp → `wa.me`, Call → `tel:`, Email → `mailto:`, and Where (plain
+    text). On the right, a white card titled **"Send a quick message"**.
+    Instead of a form, it holds five full-width buttons that each open
+    WhatsApp with a different pre-filled message (section 5): one primary
+    ("Ask a question"), then four outlined (1-on-1, 2 people, Group of 4,
+    Lessons for my child). There is **no form**: nothing is collected and
+    nothing needs a backend or a privacy notice. The two columns stack on
+    mobile.
+
+11. **Footer** (`--navy`, white text at 75% opacity): logo and wordmark,
+    one line "Tennis lessons near Kovan, Hougang, Serangoon and Bishan.",
+    contact links, the language link, and "© 2026 Chan Soon Keat" (the year
+    is typed in the HTML).
 
 ### 4.4 Kids page (`/kids/`, `/zh/kids/`)
 
-A real page with its own content, not a copy of the home page (Google
-ignores near-duplicates). Sections: hero (smaller, same photo), "How lessons
-work for kids", "What to bring", prices (same three cards and numbers),
-parent FAQ, final call to action. Include a breadcrumb link back to the home
-page. Copy is in section 6.3 and 6.4.
+The same components as the home page, with its own content (Google ignores
+near-duplicates). The hero is the same, but at `min-height: 64vh` with the
+kids H1 and a breadcrumb line above the badge. Then: "How lessons work for
+kids" (a feature grid of four), "What to bring" (one card with icon chips),
+the same three lesson cards (kids pre-filled messages), the parent FAQ, and
+the contact section with the kids message on the primary button. Copy is in
+sections 6.3 and 6.4.
 
 ### 4.5 404 page
 
-Short and bilingual: "Page not found / 找不到此页面", with links to `/` and
-`/zh/` and the WhatsApp button. Add `<meta name="robots" content="noindex">`.
+Navy background, the logo, "Page not found / 找不到此页面" as a serif H1, links
+to `/` and `/zh/`, and the primary WhatsApp button. Add
+`<meta name="robots" content="noindex">`.
 
----
+### 4.6 Mobile first
+
+Design at **360–390px** first, then widen. Page gutter 16px (24px from
+768px). Content max width 1180px. **No horizontal scrolling at any width
+from 320px up.** The reference screenshots were taken at about 930px, the
+point where cards are single-column and wide. At 1280px the lesson cards
+sit three across.
 
 ## 5. Links and contact details (use exactly these)
 
@@ -226,11 +348,11 @@ Short and bilingual: "Page not found / 找不到此页面", with links to `/` an
 
   | Button | EN message | 中文 message |
   |---|---|---|
-  | General (hero, sticky bar, final call to action, header) | `Hi Coach Soon Keat, I found your website and I'm interested in tennis lessons near Kovan.` | `陈教练您好，我在网站上看到您的网球课，想了解一下。` |
+  | General (hero, header menu, floating button, contact card "Ask a question") | `Hi Coach Soon Keat, I found your website and I'm interested in tennis lessons near Kovan.` | `陈教练您好，我在网站上看到您的网球课，想了解一下。` |
   | 1-on-1 card | `Hi Coach Soon Keat, I'm interested in a 1-on-1 tennis lesson.` | `陈教练您好，我想了解一对一网球课。` |
   | 2-person card | `Hi Coach Soon Keat, I'm interested in a 2-person tennis lesson.` | `陈教练您好，我想了解一对二网球课。` |
   | Group card | `Hi Coach Soon Keat, I'm interested in a group tennis lesson (4 people).` | `陈教练您好，我想了解4人团体网球课。` |
-  | Kids page buttons | `Hi Coach Soon Keat, I'm interested in tennis lessons for my child.` | `陈教练您好，我想为孩子报名网球课。` |
+  | Contact card: "Lessons for my child", and every kids page button | `Hi Coach Soon Keat, I'm interested in tennis lessons for my child.` | `陈教练您好，我想为孩子报名网球课。` |
 
 - Phone: `<a href="tel:+6588841034">+65 8884 1034</a>`
 - Email: `<a href="mailto:chansoonkeat123@gmail.com">chansoonkeat123@gmail.com</a>`
@@ -253,41 +375,44 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
 **Meta description:** `Private, 2-person and group tennis lessons near Kovan, Hougang, Serangoon and Bishan with former Malaysia junior national player Chan Soon Keat. From $50/hr. WhatsApp to book.`
 
 **Hero**
-- Eyebrow: `Kovan · Hougang · Serangoon · Bishan`
-- H1: `Tennis lessons near Kovan`
+- Glass badge: `Kovan · Hougang · Serangoon · Bishan` (rendered uppercase by CSS)
+- H1: `Tennis lessons near Kovan`, with `near Kovan` as the highlight
 - Subline: `Private and group coaching for complete beginners through to tournament players, from a former Malaysia junior national player. Adults, teenagers and kids welcome.`
-- Price chip: `From $50/hr`
-- Buttons: `WhatsApp Coach` · `See prices`
+- Buttons: `WhatsApp Coach` (with arrow) · `See prices`
+- Trust row: `Former Malaysia national player` (trophy) · `Level 1 certified coach` (award) · `Coaching since 2021` (clock)
 
-**Credentials strip**
-- `Former Malaysia national player (U14 & U16)`
-- `Tennis Malaysia Level 1 certified coach`
-- `2023 STA Interclub Men's Champion`
-- `Coaching since 2021`
-
-**Who it's for**: H2 `Lessons for every level`
+**Who it's for**: eyebrow `Who it's for`, H2 `Lessons for every level`, subline `From your very first rally to your next tournament.`
 - **Newcomers**: `Never held a racquet? Start here. We cover grip, footwork and your first rallies, with no experience needed.`
 - **Beginners**: `You've played a little and want your basics to feel solid: cleaner strokes, better consistency, and fixing the habits that hold you back.`
 - **Recreational players**: `You've got the fundamentals and want to sharpen them with drills, match play and a hitting partner who pushes you.`
 - **Competitive players**: `Tournament players who want high-intensity sparring and match preparation to stay sharp.`
 - **Kids & teenagers**: `Patient, fun lessons that build real technique from the start.` Link text: `Tennis lessons for kids →` (to `/kids/`)
 
-**Prices**: H2 `Simple, per-person pricing`
-- Card 1, `1-on-1 private`: `$100` `/hour`. Bullets: `All the coach's attention on you`, `Lesson planned around your goals`.
-- Card 2, `2 people`: `$70` `/hour per person`. Badge: `Popular with friends & couples`. Bullets: `Train with a friend, partner or family member`, `Plenty of rallying between the two of you`.
-- Card 3, `Group of 4`: `$50` `/hour per person`. Bullets: `4 players per class`, `1-hour class`, `Great value for friends learning together`.
+**Lessons & prices**: eyebrow `Lessons & prices`, H2 `Choose how you train`, subline `Simple per-person pricing. Racquets and balls are provided.`
+- Card 1, `1-on-1 private`: `All the coach's attention on you, with every lesson planned around your goals.` Chips: `1 player` `Your goals` `All levels`. Price `$100` `/hour`.
+- Card 2, `2 people`: pill `Popular`. `Train with a friend, partner or family member, with plenty of rallying between the two of you.` Chips: `2 players` `Friends & couples` `All levels`. Price `$70` `/hour per person`.
+- Card 3, `Group of 4`: `A 1-hour class for four players. Great value for friends learning together.` Chips: `4 players` `1-hour class` `Best value`. Price `$50` `/hour per person`.
+- Footer link on every card: `WhatsApp →`
 - Under the cards, heading `Good to know`:
   - `Racquets and balls are provided, so you don't need to buy anything to start.`
   - `All prices are per person.`
   - `You book and pay for the court. Condo courts and public courts are both fine.`
   - `Lesson times are flexible. Message to arrange.`
 
-**How it works**: H2 `How it works`
+**Why train with Soon Keat**: eyebrow `Why train with Soon Keat`, H2 `What you get`, subline `No packages, no deposits, no fuss. Just good tennis.`
+1. `A former national player` (trophy): `Represented Malaysia at U14 and U16 level, and a Tennis Malaysia Level 1 certified coach.`
+2. `Racquets and balls provided` (award): `Turn up in sports shoes. You don't need to buy anything to start.`
+3. `Pay after the lesson` (wallet): `PayNow after each lesson. No deposit and no package to buy.`
+4. `Flexible times` (clock): `Weekday evenings from 7pm, and from 7am on weekends and public holidays.`
+5. `A court near you` (map-pin): `Your condo court or a public court around Kovan. The coach comes to you.`
+6. `Never charged for rain` (cloud-rain): `If rain cancels your lesson, there's no charge.`
+
+**How it works**: eyebrow `How it works`, H2 `Three steps to your first lesson`
 1. `Message on WhatsApp`: `Tell the coach your level, how many people, and the days that suit you.`
 2. `Pick a court and time`: `Book a court near you (your condo or a public court), and the coach will meet you there.`
 3. `Play, then pay`: `Pay by PayNow after the lesson. No deposit, no package to buy.`
 
-**Meet your coach**: H2 `Meet Coach Soon Keat`
+**Meet your coach**: eyebrow `Your coach`, H2 `Meet Coach Soon Keat`
 - Intro: `Chan Soon Keat (陈顺杰) represented Malaysia as a junior and has been coaching in Singapore since 2021. He teaches everyone from first-timers to tournament players, and adapts every lesson to the person in front of him.`
 - Achievements (list, most impressive first):
   - `Represented Malaysia at U14 and U16 international tournaments`
@@ -302,13 +427,13 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
   **Use the version without the position unless the coach has confirmed it.**
 - Hero photo alt (both pages): `Coach Chan Soon Keat hitting a forehand on a floodlit court`
 
-**Where & when**: H2 `Where and when`
+**Where & when**: eyebrow `Where & when`, H2 `Lessons at a court near you`
 - `Lessons are held at a court you book, anywhere around:` then the chips `Kovan` `Hougang` `Serangoon` `Bishan`.
 - `Somewhere else in Singapore? Ask, and it can often be arranged.`
 - Hours: `Weekday evenings from 7pm · Weekends and public holidays from 7am · Lessons finish by 10pm`
 - Lengths: `Lessons are usually 1 hour; 1.5 and 2 hours are available.`
 
-**FAQ**: H2 `Questions`
+**FAQ**: eyebrow `FAQ`, H2 `Questions, answered`
 1. `Do I need my own racquet?`: `No. Racquets and balls are provided. If you already have a racquet, bring it.`
 2. `Who books the court?`: `You do. Book any court near you, such as your condo's court or a public court, and pay the court fee directly. The coach comes to you.`
 3. `I've never played before. Is that OK?`: `Absolutely. Complete beginners are very welcome. The first lesson starts from how to hold the racquet.`
@@ -319,11 +444,13 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
 8. `What happens if it rains?`: `The coach will check in with you before the lesson. A lesson cancelled because of rain is never charged.`
 9. `Can I bring friends?`: `Yes. 2 people is $70/hour each, and a group of 4 is $50/hour each.`
 
-**Final call to action**: H2 `Ready to get on court?` / text `Message Coach Soon Keat on WhatsApp. He usually replies the same day.` / button `WhatsApp Coach`
+**Contact**: eyebrow `Get in touch`, H2 `Ready to get on court?`, subline `Message Coach Soon Keat on WhatsApp to arrange your first lesson.`
+- Rows: `WhatsApp` → `+65 8884 1034` · `Call` → `+65 8884 1034` · `Email` → `chansoonkeat123@gmail.com` · `Where` → `Your court, around Kovan, Hougang, Serangoon and Bishan`
+- Card title `Send a quick message`, text `Tap what you're interested in. WhatsApp opens with the message already typed.`
+- Buttons: `Ask a question` (primary) · `1-on-1 lesson` · `2-person lesson` · `Group of 4` · `Lessons for my child`
 
-> "Usually replies the same day" is a promise. Keep it only if the coach
-> confirms it in the PR; otherwise use `Message Coach Soon Keat on WhatsApp to arrange your first lesson.`
-> **Default to the second version.**
+> Do not promise a reply time ("usually replies the same day") unless the
+> coach confirms it in the PR.
 
 ### 6.2 中文 home (`/zh/`)
 
@@ -332,41 +459,44 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
 **Meta description:** `高文、后港、实龙岗、碧山一带网球课。前马来西亚青少年国手陈顺杰亲自执教，一对一、一对二及4人团体班，每小时$50起。WhatsApp 预约。`
 
 **Hero**
-- Eyebrow: `高文 · 后港 · 实龙岗 · 碧山`
-- H1: `高文网球课`
+- Glass badge: `高文 · 后港 · 实龙岗 · 碧山`
+- H1: `高文网球课`, with `高文` as the highlight
 - Subline: `由前马来西亚青少年国手亲自执教，从零基础到比赛选手都适合。欢迎成人、青少年及儿童报名。`
-- Price chip: `每小时 $50 起`
-- Buttons: `WhatsApp 联系教练` · `查看收费`
+- Buttons: `WhatsApp 联系教练`（带箭头） · `查看收费`
+- Trust row: `前马来西亚国手` · `一级认证教练` · `2021年起执教`
 
-**Credentials strip**
-- `前马来西亚国手（U14 & U16）`
-- `马来西亚网球总会一级认证教练`
-- `2023年新加坡网球协会俱乐部联赛男子组冠军`
-- `2021年起执教`
-
-**适合对象**: H2 `各个水平都能学`
+**适合对象**: eyebrow `适合对象`, H2 `各个水平都能学`, subline `从第一次对打，到下一场比赛。`
 - **新手**: `零基础也没问题：从握拍、步法到第一次来回对打，一步步教。`
 - **初学者**: `已经学过一段时间，想打好基础：动作更规范、击球更稳定，针对性改进弱点。`
 - **业余选手**: `基础扎实，想进一步提升：技术训练、实战对练、陪练，休闲又有进步。`
 - **比赛选手**: `高强度对打与陪练，为比赛做准备、保持状态。`
 - **儿童及青少年**: `耐心有趣的教学，从一开始就打好正确的技术基础。` Link: `儿童网球课 →` (to `/zh/kids/`)
 
-**收费标准**: H2 `收费标准（按人计算）`
-- `一对一私教`: `$100` `/小时`. Bullets: `教练全程专注于你`, `根据你的目标安排课程`.
-- `一对二`: `$70` `/小时/人`. Badge: `适合朋友、情侣一起学`. Bullets: `和朋友或家人一起上课`, `两人之间有大量对打练习`.
-- `4人团体班`: `$50` `/小时/人`. Bullets: `每班4人`, `每堂1小时`, `和朋友一起学，最划算`.
+**课程与收费**: eyebrow `课程与收费`, H2 `选择适合你的上课方式`, subline `按人计费，简单透明。提供网球拍和网球。`
+- `一对一私教`: `教练全程专注于你，每堂课根据你的目标安排。` Chips: `1人` `针对目标` `各水平`. Price `$100` `/小时`.
+- `一对二`: pill `热门`. `和朋友、伴侣或家人一起上课，两人之间有大量对打练习。` Chips: `2人` `朋友情侣` `各水平`. Price `$70` `/小时/人`.
+- `4人团体班`: `每班4人，每堂1小时。和朋友一起学，最划算。` Chips: `4人` `1小时` `最划算`. Price `$50` `/小时/人`.
+- Footer link on every card: `WhatsApp →`
 - `须知`:
   - `提供网球拍和网球，开始学不需要购买任何装备。`
   - `以上均为每人价格。`
   - `场地由学生自行预订及付费，公寓球场或公共球场都可以。`
   - `上课时间可商量，欢迎联系安排。`
 
-**上课流程**: H2 `如何报名`
+**为什么选择陈教练**: eyebrow `为什么选择陈教练`, H2 `你能得到什么`, subline `没有配套，没有订金，简单上课。`
+1. `前国手亲自执教`: `曾代表马来西亚参加U14及U16赛事，马来西亚网球总会一级认证教练。`
+2. `提供球拍和网球`: `穿运动鞋来就可以，开始学不需要买任何装备。`
+3. `上课后付款`: `每堂课后用 PayNow 付款，无需订金，也不用买配套。`
+4. `时间灵活`: `平日晚上7点起，周末及公共假期早上7点起。`
+5. `就近上课`: `在高文一带的公寓球场或公共球场，教练到场。`
+6. `下雨不收费`: `如果因下雨取消，一律不收费。`
+
+**上课流程**: eyebrow `上课流程`, H2 `三步开始第一堂课`
 1. `WhatsApp 联系`: `告诉教练你的水平、人数和方便的时间。`
 2. `订场地、定时间`: `在你附近预订球场（公寓或公共球场），教练到场上课。`
 3. `上课后付款`: `课后用 PayNow 付款，无需订金，也不用买配套。`
 
-**教练介绍**: H2 `认识陈顺杰教练`
+**教练介绍**: eyebrow `你的教练`, H2 `认识陈顺杰教练`
 - Intro: `陈顺杰（Chan Soon Keat）曾代表马来西亚参加青少年国际赛事，2021年起在新加坡执教。从初学者到比赛选手都有教学经验，每堂课都会根据学生的情况调整。`
 - 生涯纪录:
   - `代表马来西亚参加U14及U16国际赛事`
@@ -378,13 +508,13 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
 - Photo alt: `陈顺杰与马来西亚青少年戴维斯杯代表队合影`. Caption: `与马来西亚青少年戴维斯杯代表队合影`
 - Hero photo alt: `陈顺杰教练在灯光球场正手击球`
 
-**地点与时间**: H2 `上课地点与时间`
+**地点与时间**: eyebrow `地点与时间`, H2 `在你附近的球场上课`
 - `在你预订的球场上课，服务范围：` chips `高文` `后港` `实龙岗` `碧山`
 - `其他地区？欢迎询问，通常都可以安排。`
 - `平日晚上7点起 · 周末及公共假期早上7点起 · 晚上10点前结束`
 - `一般每堂1小时，也可以上1.5小时或2小时。`
 
-**FAQ**: H2 `常见问题`
+**FAQ**: eyebrow `FAQ`, H2 `常见问题`
 1. `需要自己带球拍吗？`: `不需要，教练提供网球拍和网球。如果你有自己的球拍，也欢迎带来。`
 2. `场地由谁预订？`: `由学生预订并支付场地费，公寓球场或公共球场都可以，教练会到场上课。`
 3. `完全没打过网球可以吗？`: `当然可以！非常欢迎零基础的新手，第一堂课从握拍开始教。`
@@ -395,7 +525,10 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
 8. `下雨怎么办？`: `教练会在上课前和你确认。因下雨取消的课程一律不收费。`
 9. `可以和朋友一起上吗？`: `可以！一对二每人每小时$70，4人团体班每人每小时$50。`
 
-**Final call to action**: H2 `准备好上场了吗？` / `WhatsApp 联系陈教练，安排你的第一堂课。` / button `WhatsApp 联系教练`
+**Contact**: eyebrow `联系我们`, H2 `准备好上场了吗？`, subline `WhatsApp 联系陈教练，安排你的第一堂课。`
+- Rows: `WhatsApp` → `+65 8884 1034` · `电话` → `+65 8884 1034` · `电邮` → `chansoonkeat123@gmail.com` · `地点` → `你预订的球场：高文、后港、实龙岗、碧山一带`
+- Card title `快速留言`, text `点选你想了解的课程，WhatsApp 会自动填好信息。`
+- Buttons: `咨询问题`（primary） · `一对一私教` · `一对二` · `4人团体班` · `儿童网球课`
 
 ### 6.3 English kids page (`/kids/`)
 
@@ -419,7 +552,7 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
   3. `Do we need to buy a racquet?`: `Not to start. Racquets and balls are provided. The coach can advise on the right racquet size later if your child keeps going.`
   4. `When are lessons?`: `Weekday evenings from 7pm, and from 7am on weekends and public holidays.`
   5. `Who books the court?`: `You do, at any court near you. The coach comes to you.`
-- Final call to action: H2 `Book your child's first lesson` / button `WhatsApp Coach`
+- Contact section: H2 `Book your child's first lesson`, same rows and card as the home page, with `Lessons for my child` as the primary button.
 - **Do not state a minimum age anywhere.** (See section 12.)
 
 ### 6.4 中文 kids page (`/zh/kids/`)
@@ -444,7 +577,7 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
   3. `需要买球拍吗？`: `刚开始不需要，教练提供球拍和网球。之后如果孩子继续学，教练可以建议合适的球拍尺寸。`
   4. `什么时候上课？`: `平日晚上7点起，周末及公共假期早上7点起。`
   5. `场地由谁预订？`: `由家长在附近预订任何球场，教练到场上课。`
-- Final call to action: H2 `为孩子预约第一堂课` / button `WhatsApp 联系教练`
+- Contact section: H2 `为孩子预约第一堂课`, same rows and card as the 中文 home page, with `儿童网球课` as the primary button.
 
 ---
 
@@ -482,7 +615,7 @@ that.
   `zh_SG`), `og:site_name=Coach Soon Keat Tennis`. Also add
   `<meta name="twitter:card" content="summary_large_image">`.
 - `<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">`, and
-  `<meta name="theme-color" content="#1d5fd6">`.
+  `<meta name="theme-color" content="#0b1a33">`.
 - Exactly **one `<h1>`** per page, and headings in order (no skipping from
   h2 to h4).
 - Every `<img>` has `alt`, `width` and `height`. Every image except the hero
@@ -610,6 +743,10 @@ fonts) weighs **under 450 KB**.
   /img/*
     Cache-Control: public, max-age=604800
   ```
+  The CSP has no `'unsafe-inline'` for styles, so **no `style="..."`
+  attributes and no `<style>` blocks**. Everything goes in `css/site.css`,
+  and the per-card court illustrations use classes. SVG presentation
+  attributes (`fill`, `stroke`, `opacity`) are fine.
   `script-src 'none'` still allows the JSON-LD block, because browsers never
   execute `application/ld+json`. If you add Cloudflare Web Analytics by
   snippet instead of the dashboard switch, this policy would block it, so
@@ -667,7 +804,8 @@ style of the other tests in `tests/`):
    `$70` and `$50`, and no other `$` amount appears on any page. This is what
    stops one page being updated and the others forgotten.
 8. **`TestNoScripts`**: no `<script>` tag whose type is not
-   `application/ld+json`, and no `on*=` event-handler attributes. That keeps
+   `application/ld+json`, no `on*=` event-handler attributes, and no
+   `style` attribute or `<style>` element. That keeps
    the "no JavaScript" design and the `_headers` CSP true.
 9. **`TestSitemap`**: `sitemap.xml` parses and lists exactly
    `SITE + path` for every key of `PAGES`, and `robots.txt` names that
@@ -784,9 +922,11 @@ Put these under a heading "Coach to confirm" in the PR body:
    high-resolution photos of the coach teaching, especially with a student,
    would improve the page more than any other change. The same photos should
    go on the Google Business Profile.
-6. **Same-day reply promise.** The final call to action uses the neutral
-   version. If the coach does reply the same day, switch to the "usually
-   replies the same day" line in 6.1.
+6. **Reply time.** The contact section promises no reply time. If the coach
+   reliably replies the same day, saying so on the site helps.
+7. **Reviews.** The reference shows a star rating. Leave it out until there
+   are real Google reviews, then show a few (with permission) in a section
+   after "Why train with Soon Keat".
 
 ---
 
@@ -795,8 +935,13 @@ Put these under a heading "Coach to confirm" in the PR body:
 - [ ] All four pages plus the 404 page are built exactly to sections 4–6,
       using only the copy given.
 - [ ] Checked by eye at **360px, 390px, 768px and 1280px** wide: no
-      horizontal scroll, the sticky WhatsApp bar shows on mobile only and
-      never covers content, the hero photo keeps the coach's face in frame.
+      horizontal scroll, the floating WhatsApp button never covers content,
+      the hero photo keeps the coach's face in frame, and the `<details>`
+      menu opens and closes.
+- [ ] Put side by side with `docs/design-reference/`, the pages read as the
+      same design family: dark photo hero with wave, serif headings,
+      eyebrow + H2 + subline headers, rounded cards with chips and a price
+      row, an icon-tile feature grid, and the contact layout.
       Chromium and Playwright are installed in the cloud environment; take
       screenshots of each page at 390px and 1280px and look at them.
 - [ ] Every WhatsApp button opens `wa.me/6588841034` with the right
