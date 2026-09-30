@@ -37,7 +37,7 @@ changing any facts.
 | Main call to action | **WhatsApp** `+65 8884 1034`, with a message already typed. Phone and email are secondary. **No Telegram bot link, no contact form.** |
 | Domain | **Free address only**: Cloudflare Pages `https://<project>.pages.dev`. Default project name `kovan-tennis`, so the site is `https://kovan-tennis.pages.dev`. |
 | Languages | **English + 简体中文**, as two full sets of pages linked with `hreflang`. Switching language is a plain link. **Never redirect automatically by browser language.** |
-| Kids | **Yes, children are taught.** The coach has **not** given a minimum age, so the site says "kids and teenagers" and never names an age. |
+| Kids | **Yes, children are taught** (confirmed by the coach). The coach has **not** given a minimum age, so the site says "kids and teenagers" and never names an age. |
 | Google Business Profile | The coach has none. Section 10 is a step-by-step setup guide for them. It is not code. |
 | Extra content | **None for now.** No reviews section, no gallery. Use only the two photos in `site/img/`. Do not add "coming soon" placeholders on the live site. |
 
@@ -419,7 +419,7 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
   - `Ranked No. 1 U16 player in Malaysia (2018)`
   - `Bronze medal, ASEAN Schools Games 2019`
   - `2023 STA Interclub Men's Champion`
-  - `SUniG 2023/24 Champion`
+  - `SUniG (Singapore University Games) 2023/24 Champion`
   - `Tennis Malaysia Level 1 certified coach`
 - Photo alt: `Chan Soon Keat (second from left) with the Malaysia Junior Davis Cup team`. Visible caption: `With the Malaysia Junior Davis Cup team`.
   (The coach should confirm which person he is in the photo; see section 12.
@@ -503,7 +503,7 @@ The flyer has typos. Do not copy them: "who wants", "newsport", "SUNNIG".
   - `2018年马来西亚U16排名第一`
   - `2019年东盟学校运动会铜牌`
   - `2023年新加坡网球协会（STA）俱乐部联赛男子组冠军`
-  - `SUniG 2023/24 冠军`
+  - `新加坡大学运动会（SUniG）2023/24 冠军`
   - `马来西亚网球总会一级认证教练`
 - Photo alt: `陈顺杰与马来西亚青少年戴维斯杯代表队合影`. Caption: `与马来西亚青少年戴维斯杯代表队合影`
 - Hero photo alt: `陈顺杰教练在灯光球场正手击球`
@@ -911,20 +911,18 @@ Put these under a heading "Coach to confirm" in the PR body:
    `/setrate solo 100`, `/setrate semi 140`, `/setrate group 200`. The semi
    and group amounts are the **total** for 2 and 4 people, as the bot
    stores them. Check with `/rates` afterwards.
-2. **Minimum age for kids.** Once known, add one line to both kids pages
+2. **Minimum age for kids.** The coach confirmed he teaches kids but gave
+   no age, so the site names none. Once known, add one line to both kids pages
    (for example "from age 6") and to the home "Kids & teenagers" card.
-3. **SUniG.** The flyer says "SUNNIG 23-24 Champion"; the site writes
-   "SUniG 2023/24 Champion" (the Singapore University Games). Confirm it is
-   the right event and name, and which event or category it was.
-4. **Which person is the coach** in the Junior Davis Cup photo, so the alt
+3. **Which person is the coach** in the Junior Davis Cup photo, so the alt
    text can say so.
-5. **Bigger photos.** Both photos are small (768px and 437px wide). A few
+4. **Bigger photos.** Both photos are small (768px and 437px wide). A few
    high-resolution photos of the coach teaching, especially with a student,
    would improve the page more than any other change. The same photos should
    go on the Google Business Profile.
-6. **Reply time.** The contact section promises no reply time. If the coach
+5. **Reply time.** The contact section promises no reply time. If the coach
    reliably replies the same day, saying so on the site helps.
-7. **Reviews.** The reference shows a star rating. Leave it out until there
+6. **Reviews.** The reference shows a star rating. Leave it out until there
    are real Google reviews, then show a few (with permission) in a section
    after "Why train with Soon Keat".
 
