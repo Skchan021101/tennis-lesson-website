@@ -62,7 +62,7 @@ lessons Serangoon" and "高文 网球课".
    **Sports school**.
 3. When it asks "Do you want to add a location customers can visit?", answer
    **No**, because you go to the student's court. Add the service areas:
-   Kovan, Hougang, Serangoon and Bishan.
+   Kovan, Hougang and Serangoon.
 4. Enter the phone number +65 8884 1034 and the website
    `https://kovan-tennis.pages.dev/`.
 5. Verify the business. Google may ask for a short video of you coaching and
