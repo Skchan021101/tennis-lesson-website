@@ -8,11 +8,25 @@ The coach's Telegram booking bot is a **separate** private repository
 (`Tennis-telebot`). Nothing here is shared with it, and nothing from it
 belongs here, least of all its `CLAUDE.md`, which holds server details.
 
-## Still to build
+## What exists
 
-The site does not exist yet. `BUILD_PROMPT.md` is the complete spec: copy,
-design, SEO, tests and the coach's setup steps. Build from it and nothing
-else. When the site is built, replace this section with what exists.
+A four-page static site, English and 简体中文: home and kids pages, a
+bilingual 404, one stylesheet, no JavaScript and no build step.
+`BUILD_PROMPT.md` is the spec it was built from.
+
+- `site/` is published by Cloudflare Pages on every merge to `main`, and
+  everything in it is public. Only web files (`.html .css .jpg .svg .txt .xml`
+  and `_headers`) may live there.
+- The four content pages are `site/index.html`, `site/kids/`, `site/zh/` and
+  `site/zh/kids/`. They are written by hand and repeat the same copy, so an
+  edit to one usually needs the same edit in its counterpart.
+- Prices are typed in all four pages, the JSON-LD on both home pages and
+  `PRICES` in the test. They must also match the bot's `/setrate`.
+- The guard is `tests/test_website.py` (standard library only). CI runs
+  `ruff check .` and `pytest -q` on every push and pull request.
+- The coach's guide (Cloudflare, Search Console, Google Business Profile,
+  changing a price) is `docs/website.md`. The design the coach picked is in
+  `docs/design-reference/`.
 
 ## Rules that do not bend
 
