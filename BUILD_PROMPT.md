@@ -832,7 +832,7 @@ tools, Number every click.
 **A. Put the site online: Cloudflare Pages (free, about 10 minutes, once)**
 1. Sign up at dash.cloudflare.com (free plan).
 2. Workers & Pages → Create → Pages → **Connect to Git** → authorise GitHub →
-   choose the `kovan-tennis-website` repository. Cloudflare can read a private
+   choose the `tennis-lesson-website` repository. Cloudflare can read a private
    repository. The repository stays private, and only the `site` folder is
    published.
 3. Project name `kovan-tennis`. **If that name is taken**, pick another, then
