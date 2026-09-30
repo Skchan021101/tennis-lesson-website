@@ -226,6 +226,21 @@ class TestLinks:
             assert len(texts) == 1, (path, texts)
 
 
+class TestStylesheet:
+    """One stray character in the stylesheet can silently drop the rule after it, so its shape is checked."""
+
+    def test_braces_balance_and_size_is_small(self):
+        css = (ROOT / "css" / "site.css").read_text(encoding="utf-8")
+        assert css.count("{") == css.count("}")
+        assert len(css.encode("utf-8")) < 20 * 1024
+
+    def test_every_rule_line_is_complete(self):
+        for n, line in enumerate((ROOT / "css" / "site.css").read_text(encoding="utf-8").splitlines(), 1):
+            text = line.strip()
+            if text and not text.startswith(("/*", "@", "}")) and not line.startswith("  "):
+                assert text.endswith(("{", "}")), (n, text[:60])
+
+
 class TestImages:
     """Images without alt text or dimensions hurt accessibility, SEO and layout stability."""
 

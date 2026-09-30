@@ -13,6 +13,8 @@ minute or two. Nothing else is involved (no server, no `deploy.sh`). Every pull
 request also gets its own preview link from Cloudflare, so you can check a
 change on your phone before you merge it.
 
+To look at the site on your own computer, see [view-locally.md](view-locally.md).
+
 ## A. Put the site online: Cloudflare Pages (free, about 10 minutes, once)
 
 1. Sign up at dash.cloudflare.com and choose the free plan.
