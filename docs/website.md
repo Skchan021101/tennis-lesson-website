@@ -15,6 +15,9 @@ change on your phone before you merge it.
 
 To look at the site on your own computer, see [view-locally.md](view-locally.md).
 
+To learn the basics of web design and how to ask for changes, see
+[web-design-notes.md](web-design-notes.md).
+
 ## A. Put the site online: Cloudflare Pages (free, about 10 minutes, once)
 
 1. Sign up at dash.cloudflare.com and choose the free plan.
