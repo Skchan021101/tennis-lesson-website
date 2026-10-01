@@ -15,6 +15,9 @@ change on your phone before you merge it.
 
 To look at the site on your own computer, see [view-locally.md](view-locally.md).
 
+To learn the basics of web design and how to ask for changes, see
+[web-design-notes.md](web-design-notes.md).
+
 ## A. Put the site online: Cloudflare Pages (free, about 10 minutes, once)
 
 1. Sign up at dash.cloudflare.com and choose the free plan.
@@ -69,7 +72,7 @@ lessons Serangoon" and "高文 网球课".
    some proof of the business, such as the flyer or a PayNow receipt. Follow
    its prompts.
 6. Add your services with the three prices, your hours (weekday evenings
-   7pm to 10pm, weekends 7am to 10pm), and at least 5 photos of you coaching.
+   from 7pm onwards), and at least 5 photos of you coaching.
 7. **Ask every happy student for a Google review.** Reviews are the strongest
    signal for local searches, and the site can show real ones later. Send the
    review link on WhatsApp after a good lesson.
